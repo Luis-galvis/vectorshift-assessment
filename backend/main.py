@@ -1,24 +1,30 @@
 from fastapi import FastAPI, Form, Request
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware  # Agregar esta línea
 
 from integrations.airtable import authorize_airtable, get_items_airtable, oauth2callback_airtable, get_airtable_credentials
 from integrations.notion import authorize_notion, get_items_notion, oauth2callback_notion, get_notion_credentials
 from integrations.hubspot import authorize_hubspot, get_hubspot_credentials, get_items_hubspot, oauth2callback_hubspot
+from integrations.hubspot import router as hubspot_router
+from integrations.airtable import router as airtable_router  
+from integrations.notion import router as notion_router 
 
 app = FastAPI()
-
+app.include_router(hubspot_router, prefix="/integrations")
 origins = [
     "http://localhost:3000",  # React app address
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Location"]  # <-- Importante para redirecciones
 )
-
+app.include_router(hubspot_router, prefix="/integrations")
+app.include_router(airtable_router, prefix="/integrations")  # Ahora está definido
+app.include_router(notion_router, prefix="/integrations") 
 @app.get('/')
 def read_root():
     return {'Ping': 'Pong'}
@@ -63,6 +69,7 @@ async def get_notion_items(credentials: str = Form(...)):
 @app.post('/integrations/hubspot/authorize')
 async def authorize_hubspot_integration(user_id: str = Form(...), org_id: str = Form(...)):
     return await authorize_hubspot(user_id, org_id)
+
 
 @app.get('/integrations/hubspot/oauth2callback')
 async def oauth2callback_hubspot_integration(request: Request):

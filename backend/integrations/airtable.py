@@ -3,6 +3,7 @@
 import datetime
 import json
 import secrets
+from fastapi import APIRouter, Form, Request
 from fastapi import Request, HTTPException
 from fastapi.responses import HTMLResponse
 import httpx
@@ -14,6 +15,7 @@ import requests
 from integrations.integration_item import IntegrationItem
 
 from redis_client import add_key_value_redis, get_value_redis, delete_key_redis
+router = APIRouter(prefix="/airtable", tags=["Airtable"])
 
 # CLIENT_ID = 'XXX'
 # CLIENT_SECRET = 'XXX'
